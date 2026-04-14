@@ -114,7 +114,9 @@ export default function CustomerOrder() {
     return hasVariants || hasAddons || canHaveSpecialRequest;
   };
 
-  const totalPrice = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const subtotalPrice = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const vatAmount = subtotalPrice * (settings.vatPercentage / 100);
+  const totalPrice = subtotalPrice + vatAmount;
   const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
 
   const handlePlaceOrder = () => {
@@ -169,8 +171,15 @@ Please confirm this order!
     // Open WhatsApp
     window.open(`https://wa.me/${phone}?text=${encodedMsg}`, '_blank');
 
-    // Save order to dashboard
+    // Save order to dashboard with VAT
     const orders = store.getOrders();
+    const subtotalLBP = subtotalPrice;
+    const subtotalUSD = subtotalLBP / settings.exchangeRate;
+    const vatLBP = subtotalLBP * (settings.vatPercentage / 100);
+    const vatUSD = subtotalUSD * (settings.vatPercentage / 100);
+    const totalLBP = subtotalLBP + vatLBP;
+    const totalUSD = subtotalUSD + vatUSD;
+    
     const newOrder = {
       id: `ORD-${Date.now()}`,
       customerName: customerName.trim(),
@@ -186,8 +195,12 @@ Please confirm this order!
         selectedAddons: c.selectedAddons,
         specialRequest: c.specialRequest,
       })),
-      totalLBP: totalPrice,
-      totalUSD: totalPrice / settings.exchangeRate,
+      subtotalLBP,
+      subtotalUSD,
+      vatLBP,
+      vatUSD,
+      totalLBP,
+      totalUSD,
       status: 'new' as const,
       paymentMethod: 'cash' as const,
       createdAt: Date.now(),
@@ -492,9 +505,19 @@ Please confirm this order!
                       />
                     </div>
 
-                    <div className="flex justify-between font-bold text-lg mb-4">
-                      <span>Total:</span>
-                      <span className="text-emerald-600">{totalPrice.toLocaleString()} LBP</span>
+                    <div className="space-y-2 mb-4 pb-3 border-b border-gray-200">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-600">Subtotal:</span>
+                        <span className="font-mono">{subtotalPrice.toLocaleString()} LBP</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-600">VAT ({settings.vatPercentage}%):</span>
+                        <span className="font-mono text-blue-600">{Math.round(vatAmount).toLocaleString()} LBP</span>
+                      </div>
+                      <div className="flex justify-between font-bold text-lg">
+                        <span>Total:</span>
+                        <span className="text-emerald-600">{Math.round(totalPrice).toLocaleString()} LBP</span>
+                      </div>
                     </div>
 
                     <button

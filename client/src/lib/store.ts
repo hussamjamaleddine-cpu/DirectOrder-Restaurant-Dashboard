@@ -45,8 +45,12 @@ export interface Order {
   customerPhone: string;
   type: 'dinein' | 'takeaway' | 'delivery';
   items: OrderItem[];
-  totalLBP: number;
-  totalUSD: number;
+  subtotalLBP: number; // Subtotal before VAT
+  subtotalUSD: number; // Subtotal before VAT
+  vatLBP: number; // VAT amount in LBP
+  vatUSD: number; // VAT amount in USD
+  totalLBP: number; // Final total including VAT
+  totalUSD: number; // Final total including VAT
   status: 'new' | 'confirmed' | 'ready' | 'delivered';
   paymentMethod?: 'cash' | 'card';
   createdAt: number; // timestamp
@@ -54,6 +58,7 @@ export interface Order {
   tableNumber?: string;
   deliveryAssignee?: string;
   deliveryType?: 'staff' | 'thirdparty';
+  deliveryCompany?: string; // Name of third-party delivery company
   deliveryPhone?: string;
   deliveryStatus?: 'pending' | 'pickedup' | 'delivered';
 }

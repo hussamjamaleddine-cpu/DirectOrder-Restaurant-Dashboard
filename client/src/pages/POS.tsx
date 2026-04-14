@@ -20,12 +20,29 @@ export default function POS() {
   const [customerPhone, setCustomerPhone] = useState('');
   const [orderType, setOrderType] = useState<'dinein' | 'takeaway' | 'delivery'>('dinein');
   const [paymentMethod, setPaymentMethod] = useState<'cash' | 'card'>('cash');
+  
+  // Delivery-specific fields
+  const [deliveryType, setDeliveryType] = useState<'staff' | 'thirdparty'>('staff');
+  const [deliveryAddress, setDeliveryAddress] = useState('');
+  const [deliveryAssignee, setDeliveryAssignee] = useState('');
+  const [deliveryPhone, setDeliveryPhone] = useState('');
+  const [deliveryCompany, setDeliveryCompany] = useState('');
+  
+  // Available staff and companies
+  const [staffMembers, setStaffMembers] = useState<any[]>([]);
+  const [companies, setCompanies] = useState<any[]>([]);
 
   useEffect(() => {
     const menuData = store.getMenu();
     const catsData = store.getCategories();
+    const staff = store.getStaffMembers().filter(s => s.role === 'delivery' && s.active);
+    const comps = store.getCompanies();
+    
     setMenu(menuData);
     setCategories(catsData);
+    setStaffMembers(staff);
+    setCompanies(comps);
+    
     if (catsData.length > 0) {
       setSelectedCategory(catsData[0]);
     }
@@ -70,6 +87,7 @@ export default function POS() {
     const updated = [...cart];
     const item = updated[index];
     const variant = item.menuItem.variants.find((v) => v.name === variantName);
+    const settings = store.getSettings();
     if (variant) {
       item.selectedVariant = variantName;
       item.unitPriceLBP = item.menuItem.priceLBP + variant.extraLBP;
@@ -82,6 +100,7 @@ export default function POS() {
     const updated = [...cart];
     const item = updated[index];
     const addon = item.menuItem.addons.find((a) => a.name === addonName);
+    const settings = store.getSettings();
     if (addon) {
       if (item.selectedAddons.includes(addonName)) {
         item.selectedAddons = item.selectedAddons.filter((a) => a !== addonName);
@@ -102,9 +121,19 @@ export default function POS() {
   };
 
   const calculateTotals = () => {
-    const totalUSD = cart.reduce((sum, item) => sum + item.quantity * item.unitPriceUSD, 0);
-    const totalLBP = cart.reduce((sum, item) => sum + item.quantity * item.unitPriceLBP, 0);
-    return { totalUSD, totalLBP };
+    const settings = store.getSettings();
+    const subtotalUSD = cart.reduce((sum, item) => sum + item.quantity * item.unitPriceUSD, 0);
+    const subtotalLBP = cart.reduce((sum, item) => sum + item.quantity * item.unitPriceLBP, 0);
+    
+    // Calculate VAT
+    const vatUSD = subtotalUSD * (settings.vatPercentage / 100);
+    const vatLBP = subtotalLBP * (settings.vatPercentage / 100);
+    
+    // Calculate totals including VAT
+    const totalUSD = subtotalUSD + vatUSD;
+    const totalLBP = subtotalLBP + vatLBP;
+    
+    return { subtotalUSD, subtotalLBP, vatUSD, vatLBP, totalUSD, totalLBP };
   };
 
   const handleCheckout = () => {
@@ -121,30 +150,58 @@ export default function POS() {
       return;
     }
 
-    const { totalUSD, totalLBP } = calculateTotals();
+    // Validate delivery fields if delivery order
+    if (orderType === 'delivery') {
+      if (!deliveryAddress.trim()) {
+        toast.error('Please enter delivery address');
+        return;
+      }
+      if (deliveryType === 'staff' && !deliveryAssignee) {
+        toast.error('Please select a delivery staff member');
+        return;
+      }
+      if (deliveryType === 'thirdparty' && !deliveryCompany) {
+        toast.error('Please select a delivery company');
+        return;
+      }
+    }
+
+    const { subtotalUSD, subtotalLBP, vatUSD, vatLBP, totalUSD, totalLBP } = calculateTotals();
     const orderId = `ORD-${Date.now()}`;
 
-    // Create order
+    // Create order with VAT and delivery details
     const newOrder: Order = {
       id: orderId,
       customerName: customerName.trim(),
       customerPhone: customerPhone.trim(),
       type: orderType,
-        items: cart.map((c) => ({
-          menuItemId: c.menuItemId,
-          name: c.name,
-          quantity: c.quantity,
-          unitPriceLBP: c.unitPriceLBP,
-          unitPriceUSD: c.unitPriceUSD,
-          selectedVariant: c.selectedVariant,
-          selectedAddons: c.selectedAddons,
-          specialRequest: c.specialRequest,
-        })),
+      items: cart.map((c) => ({
+        menuItemId: c.menuItemId,
+        name: c.name,
+        quantity: c.quantity,
+        unitPriceLBP: c.unitPriceLBP,
+        unitPriceUSD: c.unitPriceUSD,
+        selectedVariant: c.selectedVariant,
+        selectedAddons: c.selectedAddons,
+        specialRequest: c.specialRequest,
+      })),
+      subtotalLBP,
+      subtotalUSD,
+      vatLBP,
+      vatUSD,
       totalLBP,
       totalUSD,
       status: 'new',
       paymentMethod,
       createdAt: Date.now(),
+      ...(orderType === 'delivery' && {
+        address: deliveryAddress.trim(),
+        deliveryType,
+        deliveryAssignee: deliveryType === 'staff' ? deliveryAssignee : undefined,
+        deliveryCompany: deliveryType === 'thirdparty' ? deliveryCompany : undefined,
+        deliveryPhone: deliveryPhone.trim() || undefined,
+        deliveryStatus: 'pending',
+      }),
     };
 
     // Save order
@@ -182,9 +239,14 @@ export default function POS() {
     setCustomerPhone('');
     setOrderType('dinein');
     setPaymentMethod('cash');
+    setDeliveryAddress('');
+    setDeliveryAssignee('');
+    setDeliveryPhone('');
+    setDeliveryCompany('');
+    setDeliveryType('staff');
   };
 
-  const { totalUSD, totalLBP } = calculateTotals();
+  const { subtotalUSD, subtotalLBP, vatUSD, vatLBP, totalUSD, totalLBP } = calculateTotals();
   const settings = store.getSettings();
 
   return (
@@ -239,7 +301,7 @@ export default function POS() {
 
       {/* Cart Section */}
       <div className="lg:col-span-1 space-y-4">
-        <Card className="border-0 shadow-sm sticky top-4">
+        <Card className="border-0 shadow-sm sticky top-4 max-h-[90vh] overflow-y-auto">
           <CardHeader className="pb-3">
             <CardTitle className="text-lg">🛒 Cart ({cart.length})</CardTitle>
           </CardHeader>
@@ -280,6 +342,100 @@ export default function POS() {
                 ))}
               </div>
             </div>
+
+            {/* Delivery Options (shown only when delivery is selected) */}
+            {orderType === 'delivery' && (
+              <div className="border-t pt-3 space-y-3 bg-blue-50 p-3 rounded">
+                <h4 className="font-semibold text-sm text-gray-900">🚚 Delivery Details</h4>
+                
+                {/* Delivery Address */}
+                <div>
+                  <label className="text-xs font-semibold text-gray-600 block mb-1">Address *</label>
+                  <Input
+                    placeholder="Enter delivery address"
+                    value={deliveryAddress}
+                    onChange={(e) => setDeliveryAddress(e.target.value)}
+                    className="text-sm"
+                  />
+                </div>
+
+                {/* Delivery Type Selection */}
+                <div>
+                  <label className="text-xs font-semibold text-gray-600 block mb-2">Delivery By *</label>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setDeliveryType('staff')}
+                      className={`flex-1 py-2 px-2 rounded text-xs font-semibold transition-colors ${
+                        deliveryType === 'staff'
+                          ? 'bg-emerald-600 text-white'
+                          : 'bg-white text-gray-700 border border-gray-300'
+                      }`}
+                    >
+                      👤 Staff
+                    </button>
+                    <button
+                      onClick={() => setDeliveryType('thirdparty')}
+                      className={`flex-1 py-2 px-2 rounded text-xs font-semibold transition-colors ${
+                        deliveryType === 'thirdparty'
+                          ? 'bg-emerald-600 text-white'
+                          : 'bg-white text-gray-700 border border-gray-300'
+                      }`}
+                    >
+                      🏢 Third-Party
+                    </button>
+                  </div>
+                </div>
+
+                {/* Staff Selection */}
+                {deliveryType === 'staff' && (
+                  <div>
+                    <label className="text-xs font-semibold text-gray-600 block mb-1">Select Driver *</label>
+                    <select
+                      value={deliveryAssignee}
+                      onChange={(e) => setDeliveryAssignee(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded text-sm"
+                    >
+                      <option value="">-- Choose a driver --</option>
+                      {staffMembers.map((staff) => (
+                        <option key={staff.id} value={staff.name}>
+                          {staff.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+
+                {/* Third-Party Company Selection */}
+                {deliveryType === 'thirdparty' && (
+                  <div>
+                    <label className="text-xs font-semibold text-gray-600 block mb-1">Select Company *</label>
+                    <select
+                      value={deliveryCompany}
+                      onChange={(e) => setDeliveryCompany(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded text-sm"
+                    >
+                      <option value="">-- Choose a company --</option>
+                      {companies.map((company) => (
+                        <option key={company.id} value={company.name}>
+                          {company.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+
+                {/* Optional Delivery Phone */}
+                <div>
+                  <label className="text-xs font-semibold text-gray-600 block mb-1">Phone (Optional)</label>
+                  <Input
+                    placeholder="Delivery contact phone"
+                    value={deliveryPhone}
+                    onChange={(e) => setDeliveryPhone(e.target.value)}
+                    className="text-sm"
+                  />
+                </div>
+              </div>
+            )}
 
             {/* Cart Items */}
             <div className="border-t pt-3 max-h-96 overflow-y-auto space-y-3">
@@ -375,22 +531,22 @@ export default function POS() {
             <div className="border-t pt-3 space-y-2">
               <div className="flex justify-between text-sm">
                 <span className="text-gray-600">Subtotal:</span>
-                <span className="font-mono font-semibold">${totalUSD.toFixed(2)}</span>
+                <span className="font-mono font-semibold">${subtotalUSD.toFixed(2)}</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-gray-600">VAT ({settings.vatPercentage}%):</span>
-                <span className="font-mono font-semibold">
-                  ${(totalUSD * (settings.vatPercentage / 100)).toFixed(2)}
+                <span className="font-mono font-semibold text-blue-600">
+                  ${vatUSD.toFixed(2)}
                 </span>
               </div>
               <div className="flex justify-between text-lg font-bold border-t pt-2">
                 <span>Total:</span>
                 <span className="font-mono text-emerald-600">
-                  ${(totalUSD * (1 + settings.vatPercentage / 100)).toFixed(2)}
+                  ${totalUSD.toFixed(2)}
                 </span>
               </div>
               <p className="text-xs text-gray-600 text-center">
-                {(totalLBP * (1 + settings.vatPercentage / 100)).toLocaleString()} LBP
+                {totalLBP.toLocaleString('en-US', { maximumFractionDigits: 0 })} LBP
               </p>
             </div>
 
