@@ -2,6 +2,8 @@
   "version": 2,
   "public": true,
   "cleanUrls": true,
+  "buildCommand": "pnpm build",
+  "outputDirectory": "dist/public",
   "rewrites": [
     { "source": "/(.*)", "destination": "/index.html" }
   ]
