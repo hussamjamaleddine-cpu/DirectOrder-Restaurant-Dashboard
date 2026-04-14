@@ -2,7 +2,7 @@
 
 **A professional, modern restaurant management dashboard built with React 19 + Tailwind CSS 4 + shadcn/ui**
 
-![DirectOrder](https://img.shields.io/badge/Version-1.0.0-emerald?style=flat-square)
+![DirectOrder](https://img.shields.io/badge/Version-1.1.0-emerald?style=flat-square)
 ![React](https://img.shields.io/badge/React-19-blue?style=flat-square)
 ![Tailwind](https://img.shields.io/badge/Tailwind-4-06B6D4?style=flat-square)
 ![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)
@@ -19,11 +19,53 @@ DirectOrder is a complete restaurant management system designed for modern resta
 - 🧾 **Complete Order Management System**
 - 📋 **Menu Management with Inventory Tracking**
 - 🛒 **Point-of-Sale (POS) System**
+- 🚚 **Advanced Delivery Tracking** (Staff & Third-Party)
+- 💰 **Automated VAT Calculation**
 - 👥 **Customer Database & Analytics**
 - ⚙️ **Restaurant Settings & Configuration**
 - 💬 **WhatsApp Integration**
 - 🖨️ **Order Printing**
 - 📱 **Fully Responsive Design**
+
+---
+
+## Project Structure Map
+
+```text
+DirectOrder/
+├── client/                      # Frontend Application
+│   ├── src/                     # Source Code
+│   │   ├── pages/               # Page Components
+│   │   │   ├── Login.tsx        # Authentication Page
+│   │   │   ├── Dashboard.tsx    # Main Analytics Overview
+│   │   │   ├── Orders.tsx       # Order Management & History
+│   │   │   ├── Menu.tsx         # Menu & Inventory Management
+│   │   │   ├── POS.tsx          # Point of Sale Interface
+│   │   │   ├── Customers.tsx    # Customer CRM & Analytics
+│   │   │   ├── Settings.tsx     # System Configuration
+│   │   │   ├── KDS.tsx          # Kitchen Display System
+│   │   │   ├── Staff.tsx        # Staff & Shift Management
+│   │   │   ├── Loyalty.tsx      # Loyalty Program Management
+│   │   │   ├── Analytics.tsx    # Detailed Business Reports
+│   │   │   ├── DeliveryTracking.tsx # Real-time Delivery Tracking
+│   │   │   └── CustomerOrder.tsx # Public Ordering Interface
+│   │   ├── components/          # Reusable UI Components
+│   │   │   ├── DashboardLayout.tsx # Main App Shell
+│   │   │   └── ui/              # shadcn/ui Base Components
+│   │   ├── contexts/            # React Contexts (Auth, Theme)
+│   │   ├── lib/                 # Core Logic & Data Store
+│   │   │   └── store.ts         # Central Data Management
+│   │   ├── App.tsx              # Main Routing & App Entry
+│   │   └── main.tsx             # React DOM Mounting
+│   ├── public/                  # Static Assets
+│   └── index.html               # HTML Template
+├── server/                      # Backend API (Optional/Future)
+│   └── index.ts                 # Server Entry Point
+├── shared/                      # Shared Types & Constants
+├── DEPLOYMENT_GUIDE.md          # Detailed Deployment Instructions
+├── package.json                 # Project Dependencies & Scripts
+└── vite.config.ts               # Vite Configuration
+```
 
 ---
 
@@ -37,8 +79,8 @@ DirectOrder is a complete restaurant management system designed for modern resta
 
 ```bash
 # Clone the repository
-git clone https://github.com/hussamjamaleddine-cpu/DirectOrder.git
-cd DirectOrder
+git clone https://github.com/hussamjamaleddine-cpu/DirectOrder-Restaurant-Dashboard.git
+cd DirectOrder-Restaurant-Dashboard
 
 # Install dependencies
 pnpm install
@@ -59,107 +101,42 @@ The application will be available at `http://localhost:3000`
 
 ---
 
-## Features
+## Core Features
 
-### 1. Dashboard
+### 1. Point-of-Sale (POS) & VAT
+Modern POS interface with automated financial calculations:
+- **VAT Calculation:** Automatically applies VAT (configurable in settings) to all orders.
+- **Financial Persistence:** Stores subtotal, VAT amount, and final total for accurate reporting.
+- **Quick Selection:** Item selection by category with variant and add-on support.
+
+### 2. Delivery System
+Comprehensive delivery management:
+- **Staff Delivery:** Assign orders to internal delivery staff.
+- **Third-Party Integration:** Support for external delivery companies (e.g., Toters, Zomato).
+- **Address Capture:** Dedicated fields for delivery addresses and contact info.
+- **Real-time Tracking:** Monitor delivery status from pending to delivered.
+
+### 3. Dashboard & Analytics
 Real-time business metrics including:
-- Orders placed today
-- Daily revenue (USD & LBP)
-- Pending orders count
-- Customer database size
-- Weekly projections
-- Recent order history
+- Daily revenue (USD & LBP) with VAT breakdown.
+- Order volume and customer growth tracking.
+- Weekly projections and peak hour analysis.
 
-### 2. Orders Management
+### 4. Orders Management
 Complete order lifecycle management:
-- View all orders with filtering by status
-- Update order status (New → Confirmed → Ready → Delivered)
-- Print order receipts
-- Send WhatsApp notifications to customers
-- Delete orders with confirmation
-- View detailed order information
-
-### 3. Menu Management
-Full menu control:
-- Add/edit/delete menu items
-- Organize items by category
-- Set pricing in USD and LBP
-- Track inventory and low-stock alerts
-- Set preparation times
-- Mark items as available/86/hidden
-- Add descriptions and emojis
-
-### 4. Point-of-Sale (POS)
-Modern POS interface:
-- Quick item selection by category
-- Shopping cart with quantity adjustment
-- Customer information capture
-- Order type selection (Dine-in, Takeaway, Delivery)
-- Payment method selection (Cash, Card)
-- VAT calculation
-- One-click checkout
-
-### 5. Customers
-Customer relationship management:
-- View all customers with sorting options
-- Customer spending analytics
-- Order history per customer
-- Send WhatsApp messages
-- Delete customer records
-- Track customer lifetime value
-
-### 6. Settings
-Restaurant configuration:
-- Restaurant name, address, phone
-- Exchange rate management (LBP/USD)
-- VAT percentage configuration
-- Security settings
-- Data management (clear all data)
-- Storage information
+- Status tracking (New → Confirmed → Ready → Delivered).
+- Print order receipts and WhatsApp notifications.
+- Detailed order history with financial breakdown.
 
 ---
 
-## Architecture
-
-### Technology Stack
+## Technology Stack
 - **Frontend:** React 19 with TypeScript
 - **Styling:** Tailwind CSS 4
 - **UI Components:** shadcn/ui
-- **State Management:** React Context API
-- **Data Storage:** Browser localStorage
-- **Routing:** Wouter (lightweight client-side router)
-- **Notifications:** Sonner (toast notifications)
-
-### Project Structure
-```
-DirectOrder/
-├── client/
-│   ├── src/
-│   │   ├── pages/           # Page components
-│   │   │   ├── Login.tsx
-│   │   │   ├── Dashboard.tsx
-│   │   │   ├── Orders.tsx
-│   │   │   ├── Menu.tsx
-│   │   │   ├── POS.tsx
-│   │   │   ├── Customers.tsx
-│   │   │   └── Settings.tsx
-│   │   ├── components/      # Reusable components
-│   │   │   ├── DashboardLayout.tsx
-│   │   │   ├── ErrorBoundary.tsx
-│   │   │   └── ui/          # shadcn/ui components
-│   │   ├── contexts/        # React contexts
-│   │   │   ├── AuthContext.tsx
-│   │   │   └── ThemeContext.tsx
-│   │   ├── lib/             # Utilities & data store
-│   │   │   └── store.ts
-│   │   ├── App.tsx          # Main app component
-│   │   ├── main.tsx         # React entry point
-│   │   └── index.css        # Global styles & design tokens
-│   ├── public/              # Static assets
-│   └── index.html           # HTML template
-├── package.json
-└── README.md
-```
+- **State Management:** Custom Store with LocalStorage Persistence
+- **Routing:** Wouter
+- **Notifications:** Sonner
 
 ---
 
@@ -171,52 +148,6 @@ DirectOrder uses **browser localStorage** for data persistence. This means:
 - ✅ Works offline (with limitations)
 - ⚠️ Data is lost if browser cache is cleared
 - ⚠️ Not suitable for production without backend integration
-
-### Data Models
-
-**Order**
-```typescript
-{
-  id: string;
-  customerName: string;
-  customerPhone: string;
-  type: 'dinein' | 'takeaway' | 'delivery';
-  items: OrderItem[];
-  totalLBP: number;
-  totalUSD: number;
-  status: 'new' | 'confirmed' | 'ready' | 'delivered';
-  paymentMethod: 'cash' | 'card';
-  createdAt: number; // timestamp
-}
-```
-
-**MenuItem**
-```typescript
-{
-  id: number;
-  name: string;
-  category: string;
-  priceLBP: number;
-  priceUSD: number;
-  costLBP?: number;
-  stock?: number;
-  status: 'available' | '86' | 'hidden';
-  // ... more fields
-}
-```
-
-**Customer**
-```typescript
-{
-  id: string;
-  name: string;
-  phone: string;
-  totalOrders: number;
-  totalSpentLBP: number;
-  lastOrderAt?: number;
-  color: string;
-}
-```
 
 ---
 
@@ -233,155 +164,12 @@ DirectOrder uses **browser localStorage** for data persistence. This means:
 - 🔒 Hash PINs using bcrypt or similar
 - 🔒 Use HTTPS for all communications
 - 🔒 Implement database for persistent storage
-- 🔒 Add audit logging for sensitive operations
-- 🔒 Implement rate limiting
-- 🔒 Use secure session management
-
----
-
-## Deployment
-
-### GitHub Pages
-To deploy to GitHub Pages:
-
-```bash
-# Build the project
-pnpm build
-
-# The dist/ folder contains the production build
-# Push to your GitHub repository
-git add .
-git commit -m "Deploy DirectOrder"
-git push origin main
-```
-
-Then enable GitHub Pages in your repository settings pointing to the `dist/` folder.
-
-### Manus Hosting
-DirectOrder is also available on Manus hosting:
-- Visit: https://hussamjamaleddine-cpu.github.io/DirectOrder/
-- Automatic deployments on push
-
----
-
-## Improvements Over Original Dashboard
-
-The modern version includes significant enhancements:
-
-| Feature | Original | Modern |
-|---------|----------|--------|
-| **Framework** | Vanilla HTML/CSS/JS | React 19 + TypeScript |
-| **Security** | Hardcoded PINs | Proper authentication context |
-| **XSS Protection** | None | Proper data sanitization |
-| **Analytics** | Fake data | Real calculations |
-| **UI/UX** | Basic | Professional with warm design |
-| **Accessibility** | Limited | ARIA labels, keyboard navigation |
-| **Performance** | Full re-renders | Optimized React rendering |
-| **Type Safety** | None | Full TypeScript coverage |
-| **Maintainability** | Difficult | Component-based architecture |
-
----
-
-## Browser Support
-
-- ✅ Chrome 90+
-- ✅ Firefox 88+
-- ✅ Safari 14+
-- ✅ Edge 90+
-- ✅ Mobile browsers (iOS Safari, Chrome Mobile)
-
----
-
-## Development
-
-### Available Scripts
-
-```bash
-# Start development server
-pnpm dev
-
-# Build for production
-pnpm build
-
-# Preview production build
-pnpm preview
-
-# Type checking
-pnpm check
-
-# Format code
-pnpm format
-```
-
-### Adding New Features
-
-1. Create new page component in `client/src/pages/`
-2. Add navigation item in `DashboardLayout.tsx`
-3. Update `App.tsx` to include the new page
-4. Use the data store (`store.ts`) for persistence
-
-### Styling Guidelines
-
-- Use Tailwind CSS utilities for styling
-- Follow the design tokens in `index.css`
-- Use shadcn/ui components for common UI elements
-- Maintain the warm emerald green color scheme (#10b981)
-
----
-
-## Troubleshooting
-
-### Data Not Persisting
-- Check browser localStorage is enabled
-- Verify browser isn't in private/incognito mode
-- Clear browser cache and try again
-
-### Login Issues
-- Ensure you're using the correct PIN (1111, 2222, or 3333)
-- Check that JavaScript is enabled
-- Try a different browser
-
-### Performance Issues
-- Clear browser cache
-- Close other tabs
-- Restart the development server
-
----
-
-## Contributing
-
-We welcome contributions! Please feel free to submit pull requests or open issues for bugs and feature requests.
 
 ---
 
 ## License
 
 MIT License - feel free to use DirectOrder for your restaurant!
-
----
-
-## Support
-
-For issues, questions, or feature requests, please visit:
-- GitHub Issues: https://github.com/hussamjamaleddine-cpu/DirectOrder/issues
-- Email: support@directorder.app
-
----
-
-## Changelog
-
-### Version 1.0.0 (Current)
-- ✨ Complete React rewrite
-- ✨ Modern UI with Tailwind CSS
-- ✨ Role-based access control
-- ✨ Improved security
-- ✨ Real-time analytics
-- ✨ WhatsApp integration
-- ✨ Print functionality
-- ✨ Customer analytics
-- 🐛 Fixed XSS vulnerabilities
-- 🐛 Fixed fake analytics
-- 🐛 Fixed order ID collisions
 
 ---
 
